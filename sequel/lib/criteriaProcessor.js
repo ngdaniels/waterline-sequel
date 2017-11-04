@@ -528,9 +528,16 @@ CriteriaProcessor.prototype.processObject = function processObject (tableName, p
 
       // Check if value is a string and if so add LOWER logic
       // to work with case in-sensitive queries
+      self.queryString += "upper("
       self.queryString += self.buildParam(self.getTableAlias(), parent, !sensitive && _.isString(obj[key]) && lower) + ' ';
-      self.prepareCriterion(key, obj[key]);
+      self.queryString += ")"
+      if(key == 'contains'){
+        self.prepareCriterion(key, obj[key].toUpperCase());
+      }else{
+        self.prepareCriterion(key, obj[key]);
+      }
       self.queryString += ' AND ';
+
     });
   }
 };
@@ -744,7 +751,6 @@ CriteriaProcessor.prototype.prepareCriterion = function prepareCriterion(key, va
       if(hop(self.wlNext, 'caseSensitive') && self.wlNext.caseSensitive) {
         comparator = 'LIKE';
       }
-
       if(this.parameterized) {
         this.values.push('%' + value + '%');
         str = comparator + ' ' + '$' + this.paramCount;
@@ -752,7 +758,6 @@ CriteriaProcessor.prototype.prepareCriterion = function prepareCriterion(key, va
       else {
         str = comparator + ' ' + utils.escapeName('%' + value + '%', '"');
       }
-
       break;
 
     case 'startsWith':
@@ -806,7 +811,6 @@ CriteriaProcessor.prototype.prepareCriterion = function prepareCriterion(key, va
 
   // Bump paramCount
   this.paramCount++;
-
   // Add str to query
   this.queryString += str;
 };
