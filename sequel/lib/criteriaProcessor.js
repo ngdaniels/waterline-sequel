@@ -854,8 +854,8 @@ CriteriaProcessor.prototype.sort = function(options) {
     self.queryString += utils.escapeName(self.currentTable, self.escapeCharacter) + '.' + utils.escapeName(key, self.escapeCharacter) + ' ' + direction + ', ';
   });
 
-  // Remove trailing comma
-  this.queryString = this.queryString.slice(0, -2);
+  // Adding ROWNUM so that pagination works properly for repeated values in a sorted column:
+  this.queryString += ' ROWNUM ';
 };
 
 /**
