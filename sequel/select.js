@@ -14,6 +14,10 @@ var hop = utils.object.hasOwnProperty;
 
 var SelectBuilder = module.exports = function(schema, currentTable, queryObject, options) {
 
+  console.log('---------');
+  console.log(schema);
+  console.log('---------');
+
   this.schema = schema;
   this.currentTable = currentTable;
   this.escapeCharacter = '"';
@@ -56,21 +60,21 @@ SelectBuilder.prototype.buildSimpleSelect = function buildSimpleSelect(queryObje
   }
 
   // Escape table name
-  var tableName = utils.escapeName(self.schema[self.currentTable].tableName, self.escapeCharacter);
+  var tableName = utils.escapeName(self.schema[self.currentTable.using].tableName, self.escapeCharacter);
 
   var selectKeys = [];
   var query = 'SELECT ';
 
-  var attributes = queryObject.select || Object.keys(this.schema[this.currentTable].attributes);
+  var attributes = queryObject.select || Object.keys(this.schema[this.currentTable.using].definition);
   delete queryObject.select;
 
   attributes.forEach(function(key) {
     // Default schema to {} in case a raw DB column name is sent.  This shouldn't happen
     // after https://github.com/balderdashy/waterline/commit/687c869ad54f499018ab0b038d3de4435c96d1dd
     // but leaving here as a failsafe.
-    var schema = self.schema[self.currentTable].attributes[key] || {};
+    var schema = self.schema[self.currentTable.using].definition[key] || {};
     if(hop(schema, 'collection')) return;
-    selectKeys.push({ table: self.currentTable, key: schema.columnName || key });
+    selectKeys.push({ table: self.currentTable.using, key: schema.columnName || key });
   });
 
   // Add any hasFK strategy joins to the main query
@@ -105,7 +109,7 @@ SelectBuilder.prototype.buildSimpleSelect = function buildSimpleSelect(queryObje
   });
 
   // Remove the last comma
-  query = query.slice(0, -2) + ' FROM ' + tableName + ' AS ' + utils.escapeName(self.currentTable, self.escapeCharacter) + ' ';
+  query = query.slice(0, -2) + ' FROM ' + tableName + ' AS ' + utils.escapeName(tableName, self.escapeCharacter) + ' ';
 
   return query;
 };

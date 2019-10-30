@@ -119,8 +119,8 @@ WhereBuilder.prototype.single = function single(queryObject, options) {
   if(!hop(queryObject, 'sort')) {
     var childPK;
 
-    _.keys(this.schema[this.currentTable].attributes).forEach(function(attr) {
-      var expandedAttr = self.schema[self.currentTable].attributes[attr];
+    _.keys(this.schema[this.currentTable.using].definition).forEach(function(attr) {
+      var expandedAttr = self.schema[self.currentTable.using].definition[attr];
       if(!hop(expandedAttr, 'primaryKey')) return;
       childPK = expandedAttr.columnName || attr;
     });
