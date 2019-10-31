@@ -89,7 +89,33 @@ Sequel.prototype.find = function find(currentTable, queryObject) {
    * Step 2 - Build out the parent query.
    */
 
-  whereObject = this.simpleWhere(currentTable, queryObject);
+  // whereObject = this.simpleWhere(currentTable, queryObject);
+  whereObject = { query: '', values: [] };
+
+  if (currentTable.criteria.where) {
+    if (currentTable.criteria.where.and) {
+      currentTable.criteria.where.and.forEach((filter, index) => {
+        if (index === 0) {
+          let keys = Object.keys(filter);
+          keys.forEach((key) => {
+            whereObject.query += `WHERE "${key}" = '${filter[key]}'`;
+          });
+        }
+        else {
+          let keys = Object.keys(filter);
+          keys.forEach((key) => {
+            whereObject.query += ` AND "${key}" = '${filter[key]}'`;
+          });
+        }
+      });
+    }
+    else {
+      let keys = Object.keys(currentTable.criteria.where);
+      keys.forEach((key) => {
+        whereObject.query += `WHERE "${key}" = '${currentTable.criteria.where[key]}'`;
+      });
+    }
+  }
 
   this.queries[0] += ' ' + whereObject.query;
   this.values[0] = whereObject.values;
@@ -167,12 +193,17 @@ Sequel.prototype.create = function create(currentTable, data) {
   };
 
   // Transform the Data object into arrays used in a parameterized query
-  var attributes = utils.mapAttributes(data, options);
+  var attributes = utils.mapAttributes(currentTable.newRecord, options);
   var columnNames = attributes.keys.join(', ');
-  var paramValues = attributes.params.join(', ');
+  // var paramValues = attributes.values.join(', ');
+  var paramValues = ''
+  attributes.values.forEach(value => {
+    paramValues += `'${value}', `
+  })
+  paramValues = paramValues.slice(0, -2);
 
   // Build Query
-  var query = 'INSERT INTO ' + utils.escapeName(currentTable, this.escapeCharacter) + ' (' + columnNames + ') values (' + paramValues + ')';
+  var query = 'INSERT INTO ' + utils.escapeName(currentTable.using, this.escapeCharacter) + ' (' + columnNames + ') values (' + paramValues + ')';
 
   if(this.canReturnValues) {
     query += ' RETURNING *';

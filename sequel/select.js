@@ -14,10 +14,6 @@ var hop = utils.object.hasOwnProperty;
 
 var SelectBuilder = module.exports = function(schema, currentTable, queryObject, options) {
 
-  console.log('---------');
-  console.log(schema);
-  console.log('---------');
-
   this.schema = schema;
   this.currentTable = currentTable;
   this.escapeCharacter = '"';
@@ -109,7 +105,7 @@ SelectBuilder.prototype.buildSimpleSelect = function buildSimpleSelect(queryObje
   });
 
   // Remove the last comma
-  query = query.slice(0, -2) + ' FROM ' + tableName + ' AS ' + utils.escapeName(tableName, self.escapeCharacter) + ' ';
+  query = query.slice(0, -2) + ' FROM ' + tableName + ' AS ' + tableName + ' ';
 
   return query;
 };
