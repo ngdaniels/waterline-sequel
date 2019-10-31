@@ -273,12 +273,39 @@ Sequel.prototype.update = function update(currentTable, queryObject, data) {
 Sequel.prototype.destroy = function destroy(currentTable, queryObject) {
 
   // Get the attribute identity (as opposed to the table name)
-  var identity = currentTable;
+  var identity = currentTable.using;
 
-  var query = 'DELETE ' + (this.declareDeleteAlias ? utils.escapeName(identity, this.escapeCharacter) : '') + ' FROM ' + utils.escapeName(currentTable, this.escapeCharacter) + ' AS ' + utils.escapeName(identity, this.escapeCharacter) + ' ';
+  var query = 'DELETE FROM ' + utils.escapeName(identity, this.escapeCharacter) + ' AS ' + utils.escapeName(identity, this.escapeCharacter) + ' ';
 
   // Build Criteria clause
-  var whereObject = this.simpleWhere(currentTable, queryObject);
+  // var whereObject = this.simpleWhere(currentTable, queryObject);
+
+  whereObject = { query: '', values: [] };
+
+  if (currentTable.criteria.where) {
+    if (currentTable.criteria.where.and) {
+      currentTable.criteria.where.and.forEach((filter, index) => {
+        if (index === 0) {
+          let keys = Object.keys(filter);
+          keys.forEach((key) => {
+            whereObject.query += `WHERE "${key}" = '${filter[key]}'`;
+          });
+        }
+        else {
+          let keys = Object.keys(filter);
+          keys.forEach((key) => {
+            whereObject.query += ` AND "${key}" = '${filter[key]}'`;
+          });
+        }
+      });
+    }
+    else {
+      let keys = Object.keys(currentTable.criteria.where);
+      keys.forEach((key) => {
+        whereObject.query += `WHERE "${key}" = '${currentTable.criteria.where[key]}'`;
+      });
+    }
+  }
 
   query += ' ' + whereObject.query;
   var values = whereObject.values;
